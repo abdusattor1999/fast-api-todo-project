@@ -1,0 +1,5 @@
+database.db 
+testdb.db 
+env
+.idea
+.pytest_cache
