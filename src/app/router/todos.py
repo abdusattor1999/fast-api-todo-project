@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Path, Request
+from fastapi import APIRouter, Depends, Path
 import src.app.models as models
 from src.app.database import SessionLocal
 from typing import Annotated
@@ -7,7 +7,6 @@ from fastapi.exceptions import HTTPException
 from pydantic import BaseModel, Field
 from starlette import status
 from .auth import get_current_user
-from fastapi.templating import Jinja2Templates
 
 
 class TodoRequest(BaseModel):
@@ -25,12 +24,7 @@ def get_db():
 
 db_dependency = Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[dict, Depends(get_current_user)]
-templates = Jinja2Templates(directory="src/templates")
-router = APIRouter(prefix='/to-do', tags=['ToDo'])
-
-@router.get('/test')
-async def test_function(request:Request):
-    return templates.TemplateResponse(request=request, name="home.html", context={'request':request})
+router = APIRouter(prefix='/todo', tags=['ToDo'])
 
 
 @router.get("")

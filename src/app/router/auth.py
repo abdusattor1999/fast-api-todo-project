@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from src.app.models import User
 from passlib.context import CryptContext
@@ -8,6 +8,10 @@ from typing import Annotated
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+
+
 
 TIME_ZONE = "Asia/Tashkent"
 
@@ -17,6 +21,8 @@ router = APIRouter(
 )
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/token")
+templates = Jinja2Templates(directory="src/templates")
+
 
 SECRET_KEY = "5f4f873e4de6f072f2376d353582d5fbd008857cbc2e5ffcec849c54eed4f9fa"
 ALGORITHM = "HS256"
@@ -93,3 +99,12 @@ async def login_form(login_form:Annotated[OAuth2PasswordRequestForm, Depends()],
         token = get_token_for_user(user, expire=timedelta(days=3))
         return {'access_token': token, 'token_type': 'bearer'}
     return {"success":False, "error":"User not fount with given credentials!"}
+
+
+@router.get("/", response_class=HTMLResponse)
+async def authpage(request:Request):
+    return templates.TemplateResponse("login.html", {"request":request})
+
+@router.get("/register", response_class=HTMLResponse)
+async def authpage(request:Request):
+    return templates.TemplateResponse("register.html", {"request":request})
