@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel, Field
 from starlette import status
-from .auth import get_current_user
+from .authtemp import get_current_user
 from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
 from starlette import status
@@ -37,8 +37,11 @@ async def test_function(request:Request):
 
 @router.get("", response_class=HTMLResponse)
 async def read_all(request:Request, db:Session = Depends(get_db)):
-    todos = db.query(models.Todo).filter(models.Todo.owner_id==1).all()
-    return templates.TemplateResponse("home.html", {"request":request, "todos":todos})
+    user = await get_current_user(request)
+    if user is None:
+        return RedirectResponse(url="/auth/login", status_code=status.HTTP_302_FOUND)
+    todos = db.query(models.Todo).filter(models.Todo.owner_id==user.get('id')).all()
+    return templates.TemplateResponse("home.html", {"request":request, "todos":todos, "user":user})
 
 @router.get("/create", response_class=HTMLResponse)
 async def create_todo(request:Request):
@@ -46,13 +49,19 @@ async def create_todo(request:Request):
 
 @router.post("/create")
 async def add_todo_post(request:Request, title:str=Form(...), description:str=Form(...), priority:int=Form(...), db:Session = Depends(get_db)):
-    todo = models.Todo(title=title, description=description, priority=priority, complete=False, owner_id=1)
+    user = await get_current_user(request)
+    if user is None:
+        return RedirectResponse(url="/auth/login", status_code=status.HTTP_302_FOUND)
+    todo = models.Todo(title=title, description=description, priority=priority, complete=False, owner_id=user.get('id'))
     db.add(todo)
     db.commit()
     return RedirectResponse(url="/todotemp", status_code=status.HTTP_302_FOUND)
 
 @router.get("/edit/{id}", response_class=HTMLResponse)
 async def edit_todo(request:Request, id:int, db:Session = Depends(get_db)):
+    user = await get_current_user(request)
+    if user is None:
+        return RedirectResponse(url="/auth/login", status_code=status.HTTP_302_FOUND)
     todo = db.query(models.Todo).filter(models.Todo.id == id).first()
     return templates.TemplateResponse("edit-todo.html", {"request":request, 'todo':todo})
 
@@ -72,6 +81,9 @@ async def edit_todo_commit(request:Request, id:int, title:str=Form(...), descrip
 
 @router.get("/delete/{id}", response_class=HTMLResponse, status_code=status.HTTP_204_NO_CONTENT)
 async def delete_todo(request:Request, db:db_dependency, id:int=Path(gt=0)):
+    user = await get_current_user(request)
+    if user is None:
+        return RedirectResponse(url="/auth/login", status_code=status.HTTP_302_FOUND)
     obj = db.query(models.Todo).filter(models.Todo.id==id)
     obj.delete()
     db.commit()

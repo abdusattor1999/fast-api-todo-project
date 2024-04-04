@@ -8,18 +8,18 @@
         <div class="card-body">
 
             {% if msg %}
-            {% if msg == 'Logout Successful' or msg == 'User successfully created' %}
-            <div class="alert alert-success" role="alert">
-                {{msg}}
-            </div>
-            {% else %}
-            <div class="alert alert-danger" role="alert">
-                {{msg}}
-            </div>
-            {% endif %}
+                {% if msg == 'Logout Successful' or msg == 'User created successfully !' or msg == "Password changed successfully !" %}
+                    <div class="alert alert-success" role="alert">
+                        {{msg}}
+                    </div>
+                {% else %}
+                    <div class="alert alert-danger" role="alert">
+                        {{msg}}
+                    </div>
+                {% endif %}
             {% endif %}
 
-            <form method="POST" action="/auth">
+            <form method="POST" action="/auth/login">
                 <div class="form-group">
                     <label>Username</label>
                     <input type="text" class="form-control"

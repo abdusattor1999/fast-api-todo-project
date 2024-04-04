@@ -41,7 +41,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
         payload = jwt.decode(token, SECRET_KEY, [ALGORITHM])
         username: str = payload.get("sub")
         user_id: int = payload.get("id")
-        if username is None or id is None:
+        if username is None or user_id is None:
             raise HTTPException(status_code=401, detail="Token is invalid")
         return {"id":user_id, "username":username}
     except JWTError as e:
@@ -101,9 +101,8 @@ async def login_form(login_form:Annotated[OAuth2PasswordRequestForm, Depends()],
     return {"success":False, "error":"User not fount with given credentials!"}
 
 
-@router.get("/", response_class=HTMLResponse)
-async def authpage(request:Request):
-    return templates.TemplateResponse("login.html", {"request":request})
+
+
 
 @router.get("/register", response_class=HTMLResponse)
 async def authpage(request:Request):
